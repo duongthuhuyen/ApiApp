@@ -1,4 +1,5 @@
 package jp.techacademy.huyen.duong.apiapp
+
 import com.squareup.moshi.JsonClass
 
 import com.squareup.moshi.Json
@@ -26,7 +27,7 @@ data class Shop(
     val logoImage: String,
     @Json(name = "name")
     val name: String
-): java.io.Serializable
+) : java.io.Serializable
 
 @JsonClass(generateAdapter = true)
 data class CouponUrls(

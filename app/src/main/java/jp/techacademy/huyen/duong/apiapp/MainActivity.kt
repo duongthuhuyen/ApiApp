@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,6 +21,7 @@ class MainActivity : AppCompatActivity(), FragmentCallback {
 
     private val viewPagerAdapter by lazy { ViewPagerAdapter(this) }
 
+    //異なるActivity間で通信
     var resultLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result: ActivityResult ->
@@ -27,11 +29,9 @@ class MainActivity : AppCompatActivity(), FragmentCallback {
             val intent = result.data
             if (intent != null) {
                 val res = intent.getStringExtra(KEY_RESULT).toString()
-                Log.d("STATUSStartMain",res.toString())
-                if (res == DELETE) {
+                Log.d("STATUSStartMain", res.toString())
+                if (res == DELETE || res == ADD) {
                     (viewPagerAdapter.fragments[VIEW_PAGER_POSITION_API] as ApiFragment).updateView()
-                    (viewPagerAdapter.fragments[VIEW_PAGER_POSITION_FAVORITE] as FavoriteFragment).updateData()
-                } else if (res == ADD) {
                     (viewPagerAdapter.fragments[VIEW_PAGER_POSITION_FAVORITE] as FavoriteFragment).updateData()
                 }
             }
@@ -44,6 +44,9 @@ class MainActivity : AppCompatActivity(), FragmentCallback {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        onBackPressedDispatcher.addCallback {
+            Log.d("Callback", "CallBack MainActivity")
+        }
         // ViewPager2の初期化
         binding.viewPager2.apply {
             adapter = viewPagerAdapter
@@ -133,16 +136,6 @@ class MainActivity : AppCompatActivity(), FragmentCallback {
         FavoriteShop.delete(id)
         (viewPagerAdapter.fragments[VIEW_PAGER_POSITION_API] as ApiFragment).updateView()
         (viewPagerAdapter.fragments[VIEW_PAGER_POSITION_FAVORITE] as FavoriteFragment).updateData()
-    }
-
-    override fun onStart() {
-        super.onStart()
-        Log.d("MainTest","onStart")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.d("MainTest","onResume")
     }
 
     companion object {

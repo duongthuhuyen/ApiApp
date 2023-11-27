@@ -4,9 +4,12 @@ package jp.techacademy.huyen.duong.apiapp
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.addCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import jp.techacademy.huyen.duong.apiapp.databinding.ActivityWebViewBinding
+import okhttp3.internal.notify
+import okhttp3.internal.notifyAll
 
 class WebViewActivity : AppCompatActivity() {
     private lateinit var binding: ActivityWebViewBinding
@@ -16,17 +19,21 @@ class WebViewActivity : AppCompatActivity() {
         binding = ActivityWebViewBinding.inflate(layoutInflater)
         setContentView(binding.root)
         val shop = intent.getStringArrayListExtra(KEY_SHOP)
+        onBackPressedDispatcher.addCallback {
+            mainActivityBack()
+        }
         shop?.let {
             binding.webView.loadUrl(shop[3])
             binding.favoriteImageView.apply {
                 // お気に入り状態を取得
                 if (shop?.size == 4) {
-                    val isFavorite = FavoriteShop.findBy(shop[0]) != null
+                    var isFavorite = FavoriteShop.findBy(shop[0]) != null
                     setImageResource(if (isFavorite) R.drawable.ic_star else R.drawable.ic_star_border)
                     setOnClickListener {
                         if (isFavorite) {
                             showConfirmDeleteFavoriteDialog(shop[0])
                             statusStar = DELETE
+                            isFavorite = false
                         } else {
                             //onClickDeleteFavorite?.invoke(shop)
                             FavoriteShop.insert(FavoriteShop().apply {
@@ -37,35 +44,16 @@ class WebViewActivity : AppCompatActivity() {
                             })
                             setImageResource(R.drawable.ic_star)
                             statusStar = ADD
-                        }
-                        if ((isFavorite && statusStar == ADD)||(!isFavorite && statusStar == DELETE)) {
-                            statusStar = ""
+                            isFavorite = true
                         }
                     }
                 }
             }
         }
-       // Log.d("STATUSStar", statusStar)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        Log.d("WEBVIEW","onStop")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-
-    }
-
-    override fun onBackPressed() {
-        super.onBackPressed()
-        Log.d("WEBVIEWSTAR","BackPress")
-        Log.d("STATUSStart", statusStar)
-        val intentSub = Intent()
-        intentSub.putExtra(KEY_RESULT, statusStar)
-        setResult(RESULT_OK, intentSub)
-        finish()
+        binding.buton.setOnClickListener(
+        ) {
+            mainActivityBack()
+        }
     }
 
     private fun showConfirmDeleteFavoriteDialog(id: String) {
@@ -79,25 +67,22 @@ class WebViewActivity : AppCompatActivity() {
             .create()
             .show()
     }
+
     private fun deleteFavorite(id: String) {
         FavoriteShop.delete(id)
         binding.favoriteImageView.setImageResource(R.drawable.ic_star_border)
     }
-//    companion object {
-//        //private const val KEY_SHOP = "key_shop"
-//        fun start(activity: Activity, shop: ArrayList<String>) {
-//            val intent = Intent(activity, WebViewActivity::class.java)
-//            activity.startActivity(
-//                intent.putExtra(
-//                    KEY_SHOP,
-//                    shop
-//                )
-//            )
-//
-//        }
-//    }
+
+    fun mainActivityBack() {
+        Log.d("STATUSStart", statusStar)
+        val intentSub = Intent()
+        intentSub.putExtra(KEY_RESULT, statusStar)
+        setResult(RESULT_OK, intentSub)
+        finish()
+    }
 }
+
 const val KEY_RESULT = "key_result"
-const val DELETE ="delete"
+const val DELETE = "delete"
 const val ADD = "add"
 const val KEY_SHOP = "key_shop"
