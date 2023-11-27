@@ -2,7 +2,7 @@ package jp.techacademy.huyen.duong.apiapp
 
 interface FragmentCallback {
     // Itemを押したときの処理
-    fun onClickItem(url: String)
+    fun onClickItem(shop: ArrayList<String>)
     // お気に入り追加時の処理
     fun onAddFavorite(shop: Shop)
 

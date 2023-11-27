@@ -1,20 +1,45 @@
 package jp.techacademy.huyen.duong.apiapp
 
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import jp.techacademy.huyen.duong.apiapp.databinding.ActivityMainBinding
+
 
 class MainActivity : AppCompatActivity(), FragmentCallback {
     private lateinit var binding: ActivityMainBinding
 
     private val viewPagerAdapter by lazy { ViewPagerAdapter(this) }
 
+    var resultLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result: ActivityResult ->
+        if (result.resultCode == RESULT_OK) {
+            val intent = result.data
+            if (intent != null) {
+                val res = intent.getStringExtra(KEY_RESULT).toString()
+                Log.d("STATUSStartMain",res.toString())
+                if (res == DELETE) {
+                    (viewPagerAdapter.fragments[VIEW_PAGER_POSITION_API] as ApiFragment).updateView()
+                    (viewPagerAdapter.fragments[VIEW_PAGER_POSITION_FAVORITE] as FavoriteFragment).updateData()
+                } else if (res == ADD) {
+                    (viewPagerAdapter.fragments[VIEW_PAGER_POSITION_FAVORITE] as FavoriteFragment).updateData()
+                }
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d("MainActivity", "Oncreate")
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -59,8 +84,14 @@ class MainActivity : AppCompatActivity(), FragmentCallback {
         }
     }
 
-    override fun onClickItem(url: String) {
-        WebViewActivity.start(this, url)
+    override fun onClickItem(shop: ArrayList<String>) {
+        // WebViewActivity.start(this, shop)
+        val intent = Intent(this, WebViewActivity::class.java)
+        intent.putExtra(
+            KEY_SHOP,
+            shop
+        )
+        resultLauncher.launch(intent)
     }
 
     /**
@@ -102,6 +133,16 @@ class MainActivity : AppCompatActivity(), FragmentCallback {
         FavoriteShop.delete(id)
         (viewPagerAdapter.fragments[VIEW_PAGER_POSITION_API] as ApiFragment).updateView()
         (viewPagerAdapter.fragments[VIEW_PAGER_POSITION_FAVORITE] as FavoriteFragment).updateData()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d("MainTest","onStart")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d("MainTest","onResume")
     }
 
     companion object {

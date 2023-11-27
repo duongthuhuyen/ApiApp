@@ -14,7 +14,7 @@ class FavoriteAdapter : ListAdapter<FavoriteShop, FavoriteItemViewHolder>(Favori
     // お気に入り画面から削除するときのコールバック（ApiFragmentへ通知するメソッド)
     var onClickDeleteFavorite: ((FavoriteShop) -> Unit)? = null
     // Itemを押したときのメソッド
-    var onClickItem: ((String) -> Unit)? = null
+    var onClickItem: ((ArrayList<String>) -> Unit)? = null
 
     /**
      * ViewHolderを生成して返す
@@ -50,7 +50,8 @@ class FavoriteItemViewHolder(private val binding: RecyclerFavoriteBinding) :
             )
             // クリック時のイベントリスナーを割り当て
             setOnClickListener {
-                adapter.onClickItem?.invoke(favoriteShop.url)
+                val shopData = arrayListOf<String>(favoriteShop.id,favoriteShop.name,favoriteShop.imageUrl,favoriteShop.url)
+                adapter.onClickItem?.invoke(shopData)
             }
         }
 
