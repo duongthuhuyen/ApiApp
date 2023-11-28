@@ -8,6 +8,9 @@ import androidx.activity.addCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import jp.techacademy.huyen.duong.apiapp.databinding.ActivityWebViewBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okhttp3.internal.notify
 import okhttp3.internal.notifyAll
 
@@ -27,24 +30,24 @@ class WebViewActivity : AppCompatActivity() {
             binding.favoriteImageView.apply {
                 // お気に入り状態を取得
                 if (shop?.size == 4) {
-                    var isFavorite = FavoriteShop.findBy(shop[0]) != null
-                    setImageResource(if (isFavorite) R.drawable.ic_star else R.drawable.ic_star_border)
-                    setOnClickListener {
-                        if (isFavorite) {
-                            showConfirmDeleteFavoriteDialog(shop[0])
-                            statusStar = DELETE
-                            isFavorite = false
-                        } else {
-                            //onClickDeleteFavorite?.invoke(shop)
-                            FavoriteShop.insert(FavoriteShop().apply {
-                                id = shop[0]
-                                name = shop[1]
-                                imageUrl = shop[2]
-                                url = shop[3]
-                            })
-                            setImageResource(R.drawable.ic_star)
-                            statusStar = ADD
-                            isFavorite = true
+                    var shopF = FavoriteShop.findBy(shop[0])
+                    if (shopF != null) {
+                        var isFavorite = shopF?.favorite
+                        setImageResource(if (isFavorite == 1) R.drawable.ic_star else R.drawable.ic_star_border)
+                        setOnClickListener {
+                            if (isFavorite == 1) {
+                                showConfirmDeleteFavoriteDialog(shop[0])
+                                statusStar = DELETE
+                                isFavorite = 0
+                            } else if (isFavorite == 0){
+                                CoroutineScope(Dispatchers.Default).launch {
+                                    FavoriteShop.update(shop[0])
+                                    finish()
+                                }
+                                setImageResource(R.drawable.ic_star)
+                                statusStar = ADD
+                                isFavorite = 1
+                            }
                         }
                     }
                 }
@@ -69,7 +72,10 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     private fun deleteFavorite(id: String) {
-        FavoriteShop.delete(id)
+        CoroutineScope(Dispatchers.Default).launch {
+            FavoriteShop.delete(id)
+            finish()
+        }
         binding.favoriteImageView.setImageResource(R.drawable.ic_star_border)
     }
 

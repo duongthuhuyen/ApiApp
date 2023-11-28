@@ -6,12 +6,19 @@ import io.realm.kotlin.ext.query
 import io.realm.kotlin.types.RealmObject
 import io.realm.kotlin.types.annotations.PrimaryKey
 
-open class FavoriteShop(id: String, imageUrl: String, name: String, url: String) : RealmObject {
+open class FavoriteShop(
+    id: String,
+    imageUrl: String,
+    name: String,
+    url: String,
+    favorite: Int
+) : RealmObject, java.io.Serializable {
     @PrimaryKey
     var id: String = ""
     var imageUrl: String = ""
     var name: String = ""
     var url: String = ""
+    var favorite: Int = 0
 
     // 初期化処理
     init {
@@ -19,10 +26,11 @@ open class FavoriteShop(id: String, imageUrl: String, name: String, url: String)
         this.imageUrl = imageUrl
         this.name = name
         this.url = url
+        this.favorite = favorite
     }
 
     // realm内部呼び出し用にコンストラクタを用意
-    constructor() : this("", "", "", "")
+    constructor() : this("", "", "", "", 0)
 
     companion object {
         /**
@@ -35,8 +43,8 @@ open class FavoriteShop(id: String, imageUrl: String, name: String, url: String)
 
             // Realmデータベースからお気に入り情報を取得
             // mapでディープコピーしてresultに代入する
-            val result = realm.query<FavoriteShop>().find()
-                .map { FavoriteShop(it.id, it.imageUrl, it.name, it.url) }
+            val result = realm.query<FavoriteShop>("favorite == 1").find()
+                .map { FavoriteShop(it.id, it.imageUrl, it.name, it.url, it.favorite) }
 
             // Realmデータベースとの接続を閉じる
             realm.close()
@@ -62,16 +70,47 @@ open class FavoriteShop(id: String, imageUrl: String, name: String, url: String)
         }
 
         /**
-         * お気に入り追加
+         * データリスト追加
          */
-        fun insert(favoriteShop: FavoriteShop) {
+        fun insert(favoriteShop: List<FavoriteShop>) {
             // Realmデータベースとの接続を開く
             val config = RealmConfiguration.create(schema = setOf(FavoriteShop::class))
             val realm = Realm.open(config)
 
+            var data = mutableListOf<FavoriteShop>()
+            for ( f in favoriteShop) {
+                val shop = realm.query<FavoriteShop>("id == '${f.id}'").find()
+                if (shop == null) {
+                    data.add(shop)
+                }
+            }
             // 登録処理
-            realm.writeBlocking {
-                copyToRealm(favoriteShop)
+            if (data.size > 0) {
+                realm.writeBlocking {
+                    data.map { copyToRealm(it) }
+                }
+            }
+
+            // Realmデータベースとの接続を閉じる
+            realm.close()
+        }
+
+        /**
+         * 気に入り追加
+         */
+        suspend fun update(id: String) {
+            // Realmデータベースとの接続を開く
+            val config = RealmConfiguration.create(schema = setOf(FavoriteShop::class))
+            val realm = Realm.open(config)
+
+            val fa = realm.query<FavoriteShop>("id == ${id}").find()
+            // 登録処理
+            if (fa != null && fa.first().favorite == 0) {
+                realm.write {
+                    findLatest(fa.first())?.let { shop ->
+                        shop.favorite = 1
+                    }
+                }
             }
 
             // Realmデータベースとの接続を閉じる
@@ -81,16 +120,19 @@ open class FavoriteShop(id: String, imageUrl: String, name: String, url: String)
         /**
          * idでお気に入りから削除する
          */
-        fun delete(id: String) {
+        suspend fun delete(id: String) {
             // Realmデータベースとの接続を開く
             val config = RealmConfiguration.create(schema = setOf(FavoriteShop::class))
             val realm = Realm.open(config)
 
             // 削除処理
-            realm.writeBlocking {
-                val favoriteShops = query<FavoriteShop>("id=='$id'").find()
-                favoriteShops.forEach {
-                    delete(it)
+            val fa = realm.query<FavoriteShop>("id == ${id}").find()
+            // 登録処理
+            if (fa != null && fa.first().favorite==1 ) {
+                realm.write {
+                    findLatest(fa.first())?.let { shop ->
+                        shop.favorite= 0
+                    }
                 }
             }
 

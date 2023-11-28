@@ -1,4 +1,5 @@
 package jp.techacademy.huyen.duong.apiapp
+
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
@@ -12,6 +13,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.moshi.Moshi
 import jp.techacademy.huyen.duong.apiapp.databinding.FragmentApiBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okhttp3.*
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.IOException
@@ -173,7 +177,23 @@ class ApiFragment : Fragment() {
 
                 response.body?.string()?.also {
                     val apiResponse = jsonAdapter.fromJson(it)
+                    var data = mutableListOf<FavoriteShop>()
                     if (apiResponse != null) {
+                        for (s in apiResponse.results.shop) {
+                            var favoriteShop = FavoriteShop(
+                                s.id,
+                                s.logoImage,
+                                s.name,
+                                s.couponUrls.pc.ifEmpty { s.couponUrls.sp },
+                                0
+                            )
+                            data.add(favoriteShop)
+                        }
+
+                        if (data.size > 0) {
+                            FavoriteShop.insert(data)
+                        }
+
                         list += apiResponse.results.shop
                     }
                 }

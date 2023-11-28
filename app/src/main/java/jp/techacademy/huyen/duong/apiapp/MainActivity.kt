@@ -14,6 +14,9 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import jp.techacademy.huyen.duong.apiapp.databinding.ActivityMainBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 class MainActivity : AppCompatActivity(), FragmentCallback {
@@ -101,12 +104,10 @@ class MainActivity : AppCompatActivity(), FragmentCallback {
      * Favoriteに追加するときのメソッド(Fragment -> Activity へ通知する)
      */
     override fun onAddFavorite(shop: Shop) {
-        FavoriteShop.insert(FavoriteShop().apply {
-            id = shop.id
-            name = shop.name
-            imageUrl = shop.logoImage
-            url = shop.couponUrls.sp.ifEmpty { shop.couponUrls.pc }
-        })
+        CoroutineScope(Dispatchers.Default).launch {
+            FavoriteShop.update(shop.id)
+            finish()
+        }
         (viewPagerAdapter.fragments[VIEW_PAGER_POSITION_FAVORITE] as FavoriteFragment).updateData()
     }
 
@@ -133,7 +134,10 @@ class MainActivity : AppCompatActivity(), FragmentCallback {
     }
 
     private fun deleteFavorite(id: String) {
-        FavoriteShop.delete(id)
+        CoroutineScope(Dispatchers.Default).launch {
+            FavoriteShop.delete(id)
+            finish()
+        }
         (viewPagerAdapter.fragments[VIEW_PAGER_POSITION_API] as ApiFragment).updateView()
         (viewPagerAdapter.fragments[VIEW_PAGER_POSITION_FAVORITE] as FavoriteFragment).updateData()
     }
