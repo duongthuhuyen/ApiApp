@@ -1,5 +1,6 @@
 package jp.techacademy.huyen.duong.apiapp
 
+import android.util.Log
 import io.realm.kotlin.Realm
 import io.realm.kotlin.RealmConfiguration
 import io.realm.kotlin.ext.query
@@ -79,9 +80,9 @@ open class FavoriteShop(
 
             var data = mutableListOf<FavoriteShop>()
             for ( f in favoriteShop) {
-                val shop = realm.query<FavoriteShop>("id == '${f.id}'").find()
+                val shop = realm.query<FavoriteShop>("id == '${f.id}'").first().find()
                 if (shop == null) {
-                    data.add(shop)
+                    data.add(f)
                 }
             }
             // 登録処理
@@ -90,7 +91,8 @@ open class FavoriteShop(
                     data.map { copyToRealm(it) }
                 }
             }
-
+            val count = realm.query<FavoriteShop>().find()
+            Log.d("Insert","" + count.size)
             // Realmデータベースとの接続を閉じる
             realm.close()
         }
@@ -103,12 +105,14 @@ open class FavoriteShop(
             val config = RealmConfiguration.create(schema = setOf(FavoriteShop::class))
             val realm = Realm.open(config)
 
-            val fa = realm.query<FavoriteShop>("id == ${id}").find()
+            val fa = realm.query<FavoriteShop>("id == '${id}'").first().find()
             // 登録処理
-            if (fa != null && fa.first().favorite == 0) {
-                realm.write {
-                    findLatest(fa.first())?.let { shop ->
-                        shop.favorite = 1
+            if (fa != null) {
+                if (fa.favorite == 0) {
+                    realm.write {
+                        findLatest(fa)?.apply {
+                            this.favorite = 1
+                        }
                     }
                 }
             }
@@ -126,12 +130,14 @@ open class FavoriteShop(
             val realm = Realm.open(config)
 
             // 削除処理
-            val fa = realm.query<FavoriteShop>("id == ${id}").find()
+            val fa = realm.query<FavoriteShop>("id == '${id}'").first().find()
             // 登録処理
-            if (fa != null && fa.first().favorite==1 ) {
-                realm.write {
-                    findLatest(fa.first())?.let { shop ->
-                        shop.favorite= 0
+            if (fa != null ) {
+                if (fa.favorite == 1) {
+                    realm.write {
+                        findLatest(fa)?.apply {
+                            this.favorite = 0
+                        }
                     }
                 }
             }

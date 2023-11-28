@@ -76,7 +76,8 @@ class ApiItemViewHolder(private val binding: RecyclerFavoriteBinding) :
         // 星の処理
         binding.favoriteImageView.apply {
             // お気に入り状態を取得
-            val isFavorite = FavoriteShop.findBy(shop.id)?.favorite
+            val s = FavoriteShop.findBy(shop.id)
+            val isFavorite = s?.favorite?:0
 
             // 白抜きの星を設定
             setImageResource(if (isFavorite == 1) R.drawable.ic_star else R.drawable.ic_star_border)
@@ -85,7 +86,7 @@ class ApiItemViewHolder(private val binding: RecyclerFavoriteBinding) :
             setOnClickListener {
                 if (isFavorite == 1) {
                     adapter.onClickDeleteFavorite?.invoke(shop)
-                } else {
+                } else if (isFavorite == 0){
                     adapter.onClickAddFavorite?.invoke(shop)
                 }
                 adapter.notifyItemChanged(position)

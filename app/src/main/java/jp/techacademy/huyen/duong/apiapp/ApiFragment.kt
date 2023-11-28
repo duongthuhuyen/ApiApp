@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -195,6 +196,7 @@ class ApiFragment : Fragment() {
                         }
 
                         list += apiResponse.results.shop
+                        Log.d("ListResponse",""+list.size)
                     }
                 }
                 handler.post {
