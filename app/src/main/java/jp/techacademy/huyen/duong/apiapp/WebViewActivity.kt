@@ -8,6 +8,9 @@ import androidx.activity.addCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import jp.techacademy.huyen.duong.apiapp.databinding.ActivityWebViewBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okhttp3.internal.notify
 import okhttp3.internal.notifyAll
 
@@ -35,13 +38,10 @@ class WebViewActivity : AppCompatActivity() {
                             statusStar = DELETE
                             isFavorite = false
                         } else {
-                            //onClickDeleteFavorite?.invoke(shop)
-                            FavoriteShop.insert(FavoriteShop().apply {
-                                id = shop[0]
-                                name = shop[1]
-                                imageUrl = shop[2]
-                                url = shop[3]
-                            })
+                            CoroutineScope(Dispatchers.Default).launch {
+                                FavoriteShop.insert(shop[0])
+                                finish()
+                            }
                             setImageResource(R.drawable.ic_star)
                             statusStar = ADD
                             isFavorite = true
@@ -69,7 +69,10 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     private fun deleteFavorite(id: String) {
-        FavoriteShop.delete(id)
+        CoroutineScope(Dispatchers.Default).launch {
+            FavoriteShop.delete(id)
+            finish()
+        }
         binding.favoriteImageView.setImageResource(R.drawable.ic_star_border)
     }
 

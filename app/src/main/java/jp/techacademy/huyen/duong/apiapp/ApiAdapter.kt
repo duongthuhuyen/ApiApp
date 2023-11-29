@@ -1,5 +1,6 @@
 package jp.techacademy.huyen.duong.apiapp
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -14,13 +15,13 @@ import jp.techacademy.huyen.duong.apiapp.databinding.RecyclerFavoriteBinding
  * 第一引数: データを保持するクラス。今回はShop
  * 第二引数: リスト内の1行の内容を保持するViewHolder。今回はApiItemViewHolder
  */
-class ApiAdapter : ListAdapter<Shop, ApiItemViewHolder>(ApiItemCallback()) {
+class ApiAdapter : ListAdapter<FavoriteShop, ApiItemViewHolder>(ApiItemCallback()) {
 
     // 一覧画面から登録するときのコールバック（FavoriteFragmentへ通知するメソッド)
-    var onClickAddFavorite: ((Shop) -> Unit)? = null
+    var onClickAddFavorite: ((FavoriteShop) -> Unit)? = null
 
     // 一覧画面から削除するときのコールバック（ApiFragmentへ通知するメソッド)
-    var onClickDeleteFavorite: ((Shop) -> Unit)? = null
+    var onClickDeleteFavorite: ((FavoriteShop) -> Unit)? = null
 
     // Itemを押したときのメソッド
     var onClickItem: ((ArrayList<String>) -> Unit)? = null
@@ -48,7 +49,7 @@ class ApiAdapter : ListAdapter<Shop, ApiItemViewHolder>(ApiItemCallback()) {
  */
 class ApiItemViewHolder(private val binding: RecyclerFavoriteBinding) :
     RecyclerView.ViewHolder(binding.root) {
-    fun bind(shop: Shop, position: Int, adapter: ApiAdapter) {
+    fun bind(shop: FavoriteShop, position: Int, adapter: ApiAdapter) {
         binding.rootView.apply {
             // 偶数番目と奇数番目で背景色を変更させる
             setBackgroundColor(
@@ -61,8 +62,8 @@ class ApiItemViewHolder(private val binding: RecyclerFavoriteBinding) :
                 val shopData = arrayListOf<String>(
                     shop.id,
                     shop.name,
-                    shop.logoImage,
-                    if (shop.couponUrls.sp.isNotEmpty()) shop.couponUrls.sp else shop.couponUrls.pc
+                    shop.imageUrl,
+                    shop.url
                 )
                 adapter.onClickItem?.invoke(shopData)
             }
@@ -71,25 +72,28 @@ class ApiItemViewHolder(private val binding: RecyclerFavoriteBinding) :
         binding.nameTextView.text = shop.name
 
         // Picassoライブラリを使い、imageViewにdata.logoImageのurlの画像を読み込ませる
-        Picasso.get().load(shop.logoImage).into(binding.imageView)
-
+        Picasso.get().load(shop.imageUrl).into(binding.imageView)
+        //val f = FavoriteShop.findBy(shop.id)
         // 星の処理
         binding.favoriteImageView.apply {
             // お気に入り状態を取得
-            val isFavorite = FavoriteShop.findBy(shop.id) != null
+//            if (f != null) {
+                var isFavorite = shop.favorite
 
-            // 白抜きの星を設定
-            setImageResource(if (isFavorite) R.drawable.ic_star else R.drawable.ic_star_border)
+                // 白抜きの星を設定
+                setImageResource(if (isFavorite == 1) R.drawable.ic_star else R.drawable.ic_star_border)
 
-            // 星をタップした時の処理
-            setOnClickListener {
-                if (isFavorite) {
-                    adapter.onClickDeleteFavorite?.invoke(shop)
-                } else {
-                    adapter.onClickAddFavorite?.invoke(shop)
+                // 星をタップした時の処理
+                setOnClickListener {
+                    if (isFavorite == 1) {
+                        adapter.onClickDeleteFavorite?.invoke(shop)
+                        isFavorite = 0
+                    } else {
+                        adapter.onClickAddFavorite?.invoke(shop)
+                        isFavorite = 1
+                    }
+                    adapter.notifyItemChanged(position)
                 }
-                adapter.notifyItemChanged(position)
-            }
         }
     }
 }
@@ -97,13 +101,14 @@ class ApiItemViewHolder(private val binding: RecyclerFavoriteBinding) :
 /**
  * データの差分を確認するクラス
  */
-internal class ApiItemCallback : DiffUtil.ItemCallback<Shop>() {
+internal class ApiItemCallback : DiffUtil.ItemCallback<FavoriteShop>() {
 
-    override fun areItemsTheSame(oldItem: Shop, newItem: Shop): Boolean {
+    override fun areItemsTheSame(oldItem: FavoriteShop, newItem: FavoriteShop): Boolean {
         return oldItem.id == newItem.id
     }
 
-    override fun areContentsTheSame(oldItem: Shop, newItem: Shop): Boolean {
+    @SuppressLint("DiffUtilEquals")
+    override fun areContentsTheSame(oldItem: FavoriteShop, newItem: FavoriteShop): Boolean {
         return oldItem == newItem
     }
 }

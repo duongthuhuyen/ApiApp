@@ -1,9 +1,11 @@
 package jp.techacademy.huyen.duong.apiapp
+
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -28,7 +30,7 @@ class ApiFragment : Fragment() {
 
     // -----追加ここから
     // 一覧に表示するShopを保持
-    private var list = mutableListOf<Shop>()
+    private var list = mutableListOf<FavoriteShop>()
 
     // 現在のページ
     private var page = 0
@@ -139,54 +141,16 @@ class ApiFragment : Fragment() {
         }
         // 開始位置を計算
         val start = page * COUNT + 1
-
-        val url = StringBuilder()
-            .append(getString(R.string.base_url)) // https://webservice.recruit.co.jp/hotpepper/gourmet/v1/
-            .append("?key=").append(getString(R.string.api_key)) // Apiを使うためのApiKey
-            .append("&start=").append(start) // 何件目からのデータを取得するか
-            .append("&count=").append(COUNT) // 1回で20件取得する
-            .append("&keyword=")
-            .append(getString(R.string.api_keyword)) // お店の検索ワード。ここでは例として「ランチ」を検索
-            .append("&format=json") // ここで利用しているAPIは戻りの形をxmlかjsonが選択することができる。Androidで扱う場合はxmlよりもjsonの方が扱いやすいので、jsonを選択
-            .toString()
-        val client = OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            })
-            .build()
-        val request = Request.Builder()
-            .url(url)
-            .build()
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) { // Error時の処理
-                e.printStackTrace()
-                handler.post {
-                    updateRecyclerView(listOf())
-                }
-                isLoading = false // 読み込み中フラグを折る
-            }
-
-            override fun onResponse(call: Call, response: Response) { // 成功時の処理
-                // Jsonを変換するためのAdapterを用意
-                val moshi = Moshi.Builder().build()
-                val jsonAdapter = moshi.adapter(ApiResponse::class.java)
-
-                response.body?.string()?.also {
-                    val apiResponse = jsonAdapter.fromJson(it)
-                    if (apiResponse != null) {
-                        list += apiResponse.results.shop
-                    }
-                }
-                handler.post {
-                    updateRecyclerView(list)
-                }
-                isLoading = false // 読み込み中フラグを折る
-            }
-        })
+        var data = FavoriteShop.findAll()
+        Log.d("HIII",""+data.size)
+        handler.post() {
+            updateRecyclerView(data)
+        }
+        isLoading = false
     }
     // -----変更ここまで
 
-    private fun updateRecyclerView(list: List<Shop>) {
+    private fun updateRecyclerView(list: List<FavoriteShop>) {
         apiAdapter.submitList(list)
         // SwipeRefreshLayoutのくるくるを消す
         binding.swipeRefreshLayout.isRefreshing = false

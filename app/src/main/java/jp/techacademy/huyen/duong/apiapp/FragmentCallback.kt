@@ -5,7 +5,7 @@ interface FragmentCallback {
     fun onClickItem(shop: ArrayList<String>)
 
     // お気に入り追加時の処理
-    fun onAddFavorite(shop: Shop)
+    fun onAddFavorite(shop: FavoriteShop)
 
     // お気に入り削除時の処理
     fun onDeleteFavorite(id: String)

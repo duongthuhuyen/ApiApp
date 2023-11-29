@@ -59,7 +59,7 @@ class FavoriteFragment: Fragment() {
     }
 
     fun updateData() {
-        favoriteAdapter.submitList(FavoriteShop.findAll())
+        favoriteAdapter.submitList(FavoriteShop.findAllLike())
         binding.swipeRefreshLayout.isRefreshing = false
     }
 }
