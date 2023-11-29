@@ -46,58 +46,58 @@ class MainActivity : AppCompatActivity(), FragmentCallback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
-        val url = StringBuilder()
-            .append(getString(R.string.base_url)) // https://webservice.recruit.co.jp/hotpepper/gourmet/v1/
-            .append("?key=").append(getString(R.string.api_key)) // Apiを使うためのApiKey
-            .append("&start=").append(1) // 何件目からのデータを取得するか
-            .append("&count=").append(199) // 1回で20件取得する
-            .append("&keyword=")
-            .append(getString(R.string.api_keyword)) // お店の検索ワード。ここでは例として「ランチ」を検索
-            .append("&format=json") // ここで利用しているAPIは戻りの形をxmlかjsonが選択することができる。Androidで扱う場合はxmlよりもjsonの方が扱いやすいので、jsonを選択
-            .toString()
-        val client = OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            })
-            .build()
-        val request = Request.Builder()
-            .url(url)
-            .build()
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) { // Error時の処理
-                e.printStackTrace()
-
-            }
-
-            override fun onResponse(call: Call, response: Response) { // 成功時の処理
-                // Jsonを変換するためのAdapterを用意
-                val moshi = Moshi.Builder().build()
-                val jsonAdapter = moshi.adapter(ApiResponse::class.java)
-
-                response.body?.string()?.also {
-                    val apiResponse = jsonAdapter.fromJson(it)
-                    if (apiResponse != null) {
-                        Log.d("DATAAPI",""+apiResponse.results.shop.size)
-                        var data = mutableListOf<FavoriteShop>()
-                        for (s in apiResponse.results.shop) {
-                            var favoriteShop = FavoriteShop(
-                                s.id,
-                                s.logoImage,
-                                s.name,
-                                s.couponUrls.pc.ifEmpty { s.couponUrls.sp },
-                                0
-                            )
-                            data.add(favoriteShop)
-                        }
-
-                        if (data.size > 0) {
-                            FavoriteShop.insertAll(data)
-                        }
-                       // dataList+= apiResponse.results.shop
-                    }
-                }
-            }
-        })
+//        val url = StringBuilder()
+//            .append(getString(R.string.base_url)) // https://webservice.recruit.co.jp/hotpepper/gourmet/v1/
+//            .append("?key=").append(getString(R.string.api_key)) // Apiを使うためのApiKey
+//            .append("&start=").append(1) // 何件目からのデータを取得するか
+//            .append("&count=").append(199) // 1回で20件取得する
+//            .append("&keyword=")
+//            .append(getString(R.string.api_keyword)) // お店の検索ワード。ここでは例として「ランチ」を検索
+//            .append("&format=json") // ここで利用しているAPIは戻りの形をxmlかjsonが選択することができる。Androidで扱う場合はxmlよりもjsonの方が扱いやすいので、jsonを選択
+//            .toString()
+//        val client = OkHttpClient.Builder()
+//            .addInterceptor(HttpLoggingInterceptor().apply {
+//                level = HttpLoggingInterceptor.Level.BODY
+//            })
+//            .build()
+//        val request = Request.Builder()
+//            .url(url)
+//            .build()
+//        client.newCall(request).enqueue(object : Callback {
+//            override fun onFailure(call: Call, e: IOException) { // Error時の処理
+//                e.printStackTrace()
+//
+//            }
+//
+//            override fun onResponse(call: Call, response: Response) { // 成功時の処理
+//                // Jsonを変換するためのAdapterを用意
+//                val moshi = Moshi.Builder().build()
+//                val jsonAdapter = moshi.adapter(ApiResponse::class.java)
+//
+//                response.body?.string()?.also {
+//                    val apiResponse = jsonAdapter.fromJson(it)
+//                    if (apiResponse != null) {
+//                        Log.d("DATAAPI",""+apiResponse.results.shop.size)
+//                        var data = mutableListOf<FavoriteShop>()
+//                        for (s in apiResponse.results.shop) {
+//                            var favoriteShop = FavoriteShop(
+//                                s.id,
+//                                s.logoImage,
+//                                s.name,
+//                                s.couponUrls.pc.ifEmpty { s.couponUrls.sp },
+//                                0
+//                            )
+//                            data.add(favoriteShop)
+//                        }
+//
+//                        if (data.size > 0) {
+//                            FavoriteShop.insertAll(data)
+//                        }
+//                       // dataList+= apiResponse.results.shop
+//                    }
+//                }
+//            }
+//        })
         //Log.d("DataList",""+ dataList.size)
         //---------------------------------------------------
         Log.d("MainActivity", "Oncreate")

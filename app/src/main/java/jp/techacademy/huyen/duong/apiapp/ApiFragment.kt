@@ -78,40 +78,6 @@ class ApiFragment : Fragment() {
         binding.recyclerView.apply {
             adapter = apiAdapter
             layoutManager = LinearLayoutManager(requireContext()) // 一列ずつ表示
-
-            // -----追加ここから
-            // Scrollを検知するListenerを実装する。これによって、RecyclerViewの下端に近づいた時に次のページを読み込んで、下に付け足す
-            addOnScrollListener(object : RecyclerView.OnScrollListener() {
-                // dx はx軸方向の変化量(横) dy はy軸方向の変化量(縦) ここではRecyclerViewは縦方向なので、dyだけ考慮する
-                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                    super.onScrolled(recyclerView, dx, dy)
-
-                    // 縦方向の変化量(スクロール量)が0の時は動いていないので何も処理はしない
-                    if (dy == 0) {
-                        return
-                    }
-
-                    // RecyclerViewの現在の表示アイテム数
-                    val totalCount = apiAdapter.itemCount
-
-                    // RecyclerViewの現在見えている最後のViewHolderのposition
-                    val lastVisibleItem =
-                        (layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
-
-                    // totalCountとlastVisibleItemから全体のアイテム数のうちどこまでが見えているかがわかる
-                    // (例:totalCountが20、lastVisibleItemが15の時は、現在のスクロール位置から下に5件見えていないアイテムがある)
-                    // 一番下にスクロールした時に次の20件を表示する等の実装が可能になる。
-                    // ユーザビリティを考えると、一番下にスクロールしてから追加した場合、一度スクロールが止まるので、ユーザーは気付きにくい
-                    // ここでは、一番下から5番目を表示した時に追加読み込みする様に実装する
-                    if (!isLoading && lastVisibleItem >= totalCount - 6) { // 読み込み中でない、かつ、現在のスクロール位置から下に5件見えていないアイテムがある
-                        updateData(true)
-                    }
-                }
-            })
-            // -----追加ここまで
-        }
-        binding.swipeRefreshLayout.setOnRefreshListener {
-            updateData()
         }
         updateData()
     }
@@ -140,12 +106,63 @@ class ApiFragment : Fragment() {
             list.clear()
         }
         // 開始位置を計算
-        val start = page * COUNT + 1
-        var data = FavoriteShop.findAll()
-        Log.d("HIII",""+data.size)
-        handler.post() {
-            updateRecyclerView(data)
-        }
+        val url = StringBuilder()
+            .append(getString(R.string.base_url)) // https://webservice.recruit.co.jp/hotpepper/gourmet/v1/
+            .append("?key=").append(getString(R.string.api_key)) // Apiを使うためのApiKey
+            .append("&start=").append(1) // 何件目からのデータを取得するか
+            .append("&count=").append(199) // 1回で20件取得する
+            .append("&keyword=")
+            .append(getString(R.string.api_keyword)) // お店の検索ワード。ここでは例として「ランチ」を検索
+            .append("&format=json") // ここで利用しているAPIは戻りの形をxmlかjsonが選択することができる。Androidで扱う場合はxmlよりもjsonの方が扱いやすいので、jsonを選択
+            .toString()
+        val client = OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .build()
+        val request = Request.Builder()
+            .url(url)
+            .build()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) { // Error時の処理
+                e.printStackTrace()
+
+            }
+
+            override fun onResponse(call: Call, response: Response) { // 成功時の処理
+                // Jsonを変換するためのAdapterを用意
+                val moshi = Moshi.Builder().build()
+                val jsonAdapter = moshi.adapter(ApiResponse::class.java)
+
+                response.body?.string()?.also {
+                    val apiResponse = jsonAdapter.fromJson(it)
+                    if (apiResponse != null) {
+                        Log.d("DATAAPI",""+apiResponse.results.shop.size)
+                        var data = mutableListOf<FavoriteShop>()
+                        for (s in apiResponse.results.shop) {
+                            var favoriteShop = FavoriteShop(
+                                s.id,
+                                s.logoImage,
+                                s.name,
+                                s.couponUrls.pc.ifEmpty { s.couponUrls.sp },
+                                0
+                            )
+                            data.add(favoriteShop)
+                        }
+
+                        if (data.size > 0) {
+                            FavoriteShop.insertAll(data)
+                        }
+                        // dataList+= apiResponse.results.shop
+                        var datas = FavoriteShop.findAll()
+                        Log.d("HIII",""+datas.size)
+                        handler.post() {
+                            updateRecyclerView(datas)
+                        }
+                    }
+                }
+            }
+        })
         isLoading = false
     }
     // -----変更ここまで

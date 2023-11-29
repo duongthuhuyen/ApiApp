@@ -87,10 +87,10 @@ class ApiItemViewHolder(private val binding: RecyclerFavoriteBinding) :
                 setOnClickListener {
                     if (isFavorite == 1) {
                         adapter.onClickDeleteFavorite?.invoke(shop)
-                        isFavorite = 0
+                        //isFavorite = 0
                     } else {
                         adapter.onClickAddFavorite?.invoke(shop)
-                        isFavorite = 1
+                        //isFavorite = 1
                     }
                     adapter.notifyItemChanged(position)
                 }
