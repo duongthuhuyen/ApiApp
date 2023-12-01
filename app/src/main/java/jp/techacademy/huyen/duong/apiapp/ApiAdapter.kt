@@ -1,6 +1,7 @@
 package jp.techacademy.huyen.duong.apiapp
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -63,13 +64,13 @@ class ApiItemViewHolder(private val binding: RecyclerFavoriteBinding) :
                     shop.id,
                     shop.name,
                     shop.imageUrl,
-                    shop.url
+                    shop.url,
                 )
                 adapter.onClickItem?.invoke(shopData)
             }
         }
         // nameTextViewのtextプロパティに代入されたオブジェクトのnameプロパティを代入
-        binding.nameTextView.text = shop.name
+        binding.nameTextView.text = shop.name + "-" + shop.address
 
         // Picassoライブラリを使い、imageViewにdata.logoImageのurlの画像を読み込ませる
         Picasso.get().load(shop.imageUrl).into(binding.imageView)
@@ -78,22 +79,25 @@ class ApiItemViewHolder(private val binding: RecyclerFavoriteBinding) :
         binding.favoriteImageView.apply {
             // お気に入り状態を取得
 //            if (f != null) {
-                var isFavorite = shop.favorite
+            var isFavorite = FavoriteShop.findBy(shop.id)
 
-                // 白抜きの星を設定
-                setImageResource(if (isFavorite == 1) R.drawable.ic_star else R.drawable.ic_star_border)
+            // 白抜きの星を設定
+            setImageResource(if (isFavorite == 1) R.drawable.ic_star else R.drawable.ic_star_border)
 
-                // 星をタップした時の処理
-                setOnClickListener {
-                    if (isFavorite == 1) {
-                        adapter.onClickDeleteFavorite?.invoke(shop)
-                        //isFavorite = 0
-                    } else {
-                        adapter.onClickAddFavorite?.invoke(shop)
-                        //isFavorite = 1
-                    }
-                    adapter.notifyItemChanged(position)
+            // 星をタップした時の処理
+            setOnClickListener {
+                if (isFavorite == 1) {
+                    adapter.onClickDeleteFavorite?.invoke(shop)
+                    //isFavorite = 0
+                } else if (isFavorite == 0) {
+                    adapter.onClickAddFavorite?.invoke(shop)
+                    //isFavorite = 1
                 }
+                Log.d("CheckError", "Error1")
+                adapter.notifyItemChanged(position)
+                Log.d("CheckError", "Error2")
+            }
+            Log.d("CheckError", "Hiii")
         }
     }
 }

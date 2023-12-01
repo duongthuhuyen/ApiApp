@@ -7,12 +7,13 @@ import io.realm.kotlin.ext.query
 import io.realm.kotlin.types.RealmObject
 import io.realm.kotlin.types.annotations.PrimaryKey
 
-open class FavoriteShop(id: String, imageUrl: String, name: String, url: String,favorite: Int) : RealmObject {
+open class FavoriteShop(id: String, imageUrl: String, name: String, url: String,address: String,favorite: Int) : RealmObject {
     @PrimaryKey
     var id: String = ""
     var imageUrl: String = ""
     var name: String = ""
     var url: String = ""
+    var address: String = ""
     var favorite: Int = 0
 
     // 初期化処理
@@ -21,11 +22,12 @@ open class FavoriteShop(id: String, imageUrl: String, name: String, url: String,
         this.imageUrl = imageUrl
         this.name = name
         this.url = url
+        this.address = address
         this.favorite = favorite
     }
 
     // realm内部呼び出し用にコンストラクタを用意
-    constructor() : this("", "", "", "", 0)
+    constructor() : this("", "", "", "","", 0)
 
     companion object {
         /**
@@ -39,7 +41,7 @@ open class FavoriteShop(id: String, imageUrl: String, name: String, url: String,
             // Realmデータベースからお気に入り情報を取得
             // mapでディープコピーしてresultに代入する
             val result = realm.query<FavoriteShop>().find()
-                .map { FavoriteShop(it.id, it.imageUrl, it.name, it.url, it.favorite) }
+                .map { FavoriteShop(it.id, it.imageUrl, it.name, it.url, it.address,it.favorite) }
 
             // Realmデータベースとの接続を閉じる
             realm.close()
@@ -57,7 +59,7 @@ open class FavoriteShop(id: String, imageUrl: String, name: String, url: String,
             // Realmデータベースからお気に入り情報を取得
             // mapでディープコピーしてresultに代入する
             val result = realm.query<FavoriteShop>("favorite == 1").find()
-                .map { FavoriteShop(it.id, it.imageUrl, it.name, it.url, it.favorite) }
+                .map { FavoriteShop(it.id, it.imageUrl, it.name, it.url,it.address, it.favorite) }
 
             // Realmデータベースとの接続を閉じる
             realm.close()
@@ -68,18 +70,18 @@ open class FavoriteShop(id: String, imageUrl: String, name: String, url: String,
          * お気に入りされているShopをidで検索して返す
          * お気に入りに登録されていなければnullで返す
          */
-        fun findBy(id: String): Int {
+        fun findBy(id: String): Int{
             // Realmデータベースとの接続を開く
             val config = RealmConfiguration.create(schema = setOf(FavoriteShop::class))
             val realm = Realm.open(config)
-
+            var fa = 0
             val result = realm.query<FavoriteShop>("id=='$id'").first().find()
-            if (result == null) return 0
-
+            Log.d("HELLLOOO",""+result?.favorite)
+            fa = result?.favorite!!
             // Realmデータベースとの接続を閉じる
             realm.close()
 
-            return result?.favorite!!
+            return fa
         }
 
         /**
@@ -151,6 +153,15 @@ open class FavoriteShop(id: String, imageUrl: String, name: String, url: String,
 
 
             // Realmデータベースとの接続を閉じる
+            realm.close()
+        }
+        suspend fun deleteAll() {
+            // Realmデータベースとの接続を開く
+            val config = RealmConfiguration.create(schema = setOf(FavoriteShop::class))
+            val realm = Realm.open(config)
+            realm.write {
+                deleteAll()
+            }
             realm.close()
         }
     }

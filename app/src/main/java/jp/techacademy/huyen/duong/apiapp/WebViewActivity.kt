@@ -30,22 +30,27 @@ class WebViewActivity : AppCompatActivity() {
             binding.favoriteImageView.apply {
                 // お気に入り状態を取得
                 if (shop?.size == 4) {
-                    var isFavorite = FavoriteShop.findBy(shop[0]) != null
-                    setImageResource(if (isFavorite) R.drawable.ic_star else R.drawable.ic_star_border)
+                    //var favorite: FavoriteShop? = FavoriteShop.findBy(shop[0])
+                    //if(favorite!= null) {
+                    //Log.d("Helllo", "" + favorite.id)
+                    var isFavorite = FavoriteShop.findBy(shop[0])
+                    Log.d("HiHello",""+isFavorite)
+                    setImageResource(if (isFavorite == 1) R.drawable.ic_star else R.drawable.ic_star_border)
                     setOnClickListener {
-                        if (isFavorite) {
+                        if (isFavorite == 1) {
                             showConfirmDeleteFavoriteDialog(shop[0])
                             statusStar = DELETE
-                            isFavorite = false
-                        } else {
+                            isFavorite = 0
+                        } else if(isFavorite == 0){
                             CoroutineScope(Dispatchers.Default).launch {
                                 FavoriteShop.insert(shop[0])
                                 finish()
                             }
                             setImageResource(R.drawable.ic_star)
                             statusStar = ADD
-                            isFavorite = true
+                            isFavorite = 1
                         }
+                        //}
                     }
                 }
             }

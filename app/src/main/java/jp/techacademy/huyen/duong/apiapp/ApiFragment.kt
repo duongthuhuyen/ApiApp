@@ -14,6 +14,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.moshi.Moshi
 import jp.techacademy.huyen.duong.apiapp.databinding.FragmentApiBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okhttp3.*
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.IOException
@@ -79,6 +82,10 @@ class ApiFragment : Fragment() {
             adapter = apiAdapter
             layoutManager = LinearLayoutManager(requireContext()) // 一列ずつ表示
         }
+        binding.button.setOnClickListener() {
+            val text = binding.editText.text.toString()
+            updateData(keyword = text)
+        }
         updateData()
     }
 
@@ -91,7 +98,7 @@ class ApiFragment : Fragment() {
     }
 
     // -----変更ここから
-    private fun updateData(isAdd: Boolean = false) {
+    private fun updateData(isAdd: Boolean = false, keyword: String = "ランチ") {
         // 読み込み中なら処理を行わずに終了
         if (isLoading) {
             return
@@ -105,14 +112,17 @@ class ApiFragment : Fragment() {
             page = 0
             list.clear()
         }
+//        CoroutineScope(Dispatchers.Default).launch {
+//            FavoriteShop.deleteAll()
+//        }
         // 開始位置を計算
         val url = StringBuilder()
             .append(getString(R.string.base_url)) // https://webservice.recruit.co.jp/hotpepper/gourmet/v1/
             .append("?key=").append(getString(R.string.api_key)) // Apiを使うためのApiKey
             .append("&start=").append(1) // 何件目からのデータを取得するか
-            .append("&count=").append(199) // 1回で20件取得する
+            .append("&count=").append(19) // 1回で20件取得する
             .append("&keyword=")
-            .append(getString(R.string.api_keyword)) // お店の検索ワード。ここでは例として「ランチ」を検索
+            .append("${keyword}") // お店の検索ワード。ここでは例として「ランチ」を検索
             .append("&format=json") // ここで利用しているAPIは戻りの形をxmlかjsonが選択することができる。Androidで扱う場合はxmlよりもjsonの方が扱いやすいので、jsonを選択
             .toString()
         val client = OkHttpClient.Builder()
@@ -145,6 +155,7 @@ class ApiFragment : Fragment() {
                                 s.logoImage,
                                 s.name,
                                 s.couponUrls.pc.ifEmpty { s.couponUrls.sp },
+                                s.address,
                                 0
                             )
                             data.add(favoriteShop)

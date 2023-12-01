@@ -62,7 +62,7 @@ class FavoriteItemViewHolder(private val binding: RecyclerFavoriteBinding) :
         }
 
         // nameTextViewのtextプロパティに代入されたオブジェクトのnameプロパティを代入
-        binding.nameTextView.text = favoriteShop.name
+        binding.nameTextView.text = favoriteShop.name+"-"+favoriteShop.address
 
         // Picassoというライブラリを使ってImageVIewに画像をはめ込む
         Picasso.get().load(favoriteShop.imageUrl).into(binding.imageView)
