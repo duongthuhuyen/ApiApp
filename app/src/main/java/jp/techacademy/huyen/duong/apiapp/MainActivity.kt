@@ -160,7 +160,7 @@ class MainActivity : AppCompatActivity(), FragmentCallback {
     override fun onAddFavorite(shop: FavoriteShop) {
         CoroutineScope(Dispatchers.Default).launch {
             FavoriteShop.insert(shop.id)
-            finish()
+           // finish()
         }
         (viewPagerAdapter.fragments[VIEW_PAGER_POSITION_FAVORITE] as FavoriteFragment).updateData()
     }
@@ -190,7 +190,7 @@ class MainActivity : AppCompatActivity(), FragmentCallback {
     private fun deleteFavorite(id: String) {
         CoroutineScope(Dispatchers.Default).launch {
             FavoriteShop.delete(id)
-            finish()
+            //finish()
         }
         (viewPagerAdapter.fragments[VIEW_PAGER_POSITION_API] as ApiFragment).updateView()
         (viewPagerAdapter.fragments[VIEW_PAGER_POSITION_FAVORITE] as FavoriteFragment).updateData()

@@ -44,7 +44,6 @@ class WebViewActivity : AppCompatActivity() {
                         } else if(isFavorite == 0){
                             CoroutineScope(Dispatchers.Default).launch {
                                 FavoriteShop.insert(shop[0])
-                                finish()
                             }
                             setImageResource(R.drawable.ic_star)
                             statusStar = ADD
@@ -76,7 +75,6 @@ class WebViewActivity : AppCompatActivity() {
     private fun deleteFavorite(id: String) {
         CoroutineScope(Dispatchers.Default).launch {
             FavoriteShop.delete(id)
-            finish()
         }
         binding.favoriteImageView.setImageResource(R.drawable.ic_star_border)
     }
