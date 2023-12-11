@@ -26,7 +26,9 @@ data class Shop(
     @Json(name = "logo_image")
     val logoImage: String,
     @Json(name = "name")
-    val name: String
+    val name: String,
+   @Json(name = "address")
+    val address: String
 ) : java.io.Serializable
 
 @JsonClass(generateAdapter = true)
